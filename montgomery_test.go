@@ -21,10 +21,18 @@ func TestGetNp0(t *testing.T) {
 }
 
 func TestPowm(t *testing.T) {
-	m, ok := new(big.Int).SetString(P, 16)
+	mod, ok := new(big.Int).SetString(P, 16)
 	require.True(t, ok)
-	b := big.NewInt(math.MaxInt64)
-	e := big.NewInt(10000)
-	p, _ := powm_odd(b, e, m)
-	fmt.Println("powm", p.Text(16))
+	base := big.NewInt(math.MaxInt64)
+	exp := big.NewInt(10000)
+	result, err := powm_odd(base, exp, mod)
+	require.Nil(t, err)
+
+	// verify result
+	correct := new(big.Int).Set(base)
+	correct.Exp(correct, exp, mod)
+	require.Equal(t, result.Cmp(correct), 0)
+
+	// print result
+	fmt.Println("powm", result.Text(16))
 }
