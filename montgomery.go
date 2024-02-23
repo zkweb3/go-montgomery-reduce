@@ -114,8 +114,7 @@ func NP0(m *big.Int) uint32 {
 }
 
 func powm_odd(base, exp, mod *big.Int) (*big.Int, error) {
-	var rop C.mpz_t
-	var b, e, m C.mpz_t
+	var rop, b, e, m C.mpz_t
 	var r *C.char
 	var n C.int
 	C.mpz_init(&rop[0])
@@ -141,8 +140,7 @@ func powm_odd(base, exp, mod *big.Int) (*big.Int, error) {
 }
 
 func bn2mont(bn, mod *big.Int) (*big.Int, uint32) {
-	var mont C.mpz_t
-	var b, m C.mpz_t
+	var mont, b, m C.mpz_t
 	var np0 C.uint
 	var r *C.char
 	var n C.int

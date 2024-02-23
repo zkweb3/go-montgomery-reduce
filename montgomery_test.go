@@ -10,18 +10,19 @@ import (
 )
 
 const (
-	P string = "fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f"
+	P  string = "fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f"
+	bn string = "b0007aa30c1c50f8"
 )
 
 func TestGetNp0(t *testing.T) {
 	mod, ok := new(big.Int).SetString(P, 16)
 	require.True(t, ok)
-
-	bn := big.NewInt(math.MaxInt64)
-	mont, np0 := bn2mont(bn, mod)
+	gn, ok := new(big.Int).SetString(bn, 16)
+	require.True(t, ok)
+	mont, np0 := bn2mont(gn, mod)
 	require.NotEqual(t, np0, 0)
-	require.Equal(t, NP0(mod), np0)
 	fmt.Println("np0", np0)
+	require.Equal(t, NP0(mod), np0)
 	fmt.Println("mont", mont.Text(16))
 }
 
