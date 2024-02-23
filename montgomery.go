@@ -50,6 +50,7 @@ uint32_t find_np0(const mpz_t m) {
 */
 import "C"
 import (
+	"errors"
 	"math/big"
 	"unsafe"
 )
@@ -76,7 +77,10 @@ func powm_odd(base, exp, mod *big.Int) (*big.Int, error) {
 	C.mpz_powm(&rop[0], &b[0], &e[0], &m[0])
 	n = C.mpz_to_hex(&rop[0], &r)
 	br := C.GoBytes(unsafe.Pointer(r), n)
-	result := new(big.Int).SetBytes(br)
+	result, ok := new(big.Int).SetString(*(*string)(unsafe.Pointer(&br)), 16)
+	if !ok {
+		return nil, errors.New("unkown error")
+	}
 	C.free(unsafe.Pointer(r))
 	C.mpz_clear(&rop[0])
 	return result, nil
