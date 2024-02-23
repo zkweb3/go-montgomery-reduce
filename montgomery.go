@@ -33,8 +33,8 @@ int hex_to_mpz(const char* hex, mpz_t* m)
 int mpz_to_hex(const mpz_t r, char** hex) {
     int size = (r->_mp_size * sizeof(uint64_t)) * 2;
     *hex = (char*)malloc(size + 1);
-    memcpy(*hex, mpz_get_str(NULL, 16, r), size);
-    return size;
+    strcpy(*hex, mpz_get_str(NULL, 16, r));
+    return strlen(*hex);
 }
 
 uint32_t find_np0(const mpz_t m) {
