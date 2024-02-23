@@ -118,7 +118,7 @@ func powm_odd(base, exp, mod *big.Int) (*big.Int, error) {
 	var b, e, m C.mpz_t
 	var r *C.char
 	var n C.int
-	C.mpz_inits(&rop[0], &b[0], &e[0], &m[0], 0)
+	C.mpz_inits(&rop[0], &b[0], &e[0], &m[0], unsafe.Pointer(uintptr(0)))
 	C.hex_to_mpz((*C.char)(C.CBytes([]byte(base.Text(16)))), (*C.mpz_t)(unsafe.Pointer(&b[0])))
 	C.hex_to_mpz((*C.char)(C.CBytes([]byte(exp.Text(16)))), (*C.mpz_t)(unsafe.Pointer(&e[0])))
 	C.hex_to_mpz((*C.char)(C.CBytes([]byte(mod.Text(16)))), (*C.mpz_t)(unsafe.Pointer(&m[0])))
@@ -127,7 +127,7 @@ func powm_odd(base, exp, mod *big.Int) (*big.Int, error) {
 	br := C.GoBytes(unsafe.Pointer(r), n)
 	result, ok := new(big.Int).SetString(*(*string)(unsafe.Pointer(&br)), 16)
 	C.free(unsafe.Pointer(r))
-	C.mpz_clears(&rop[0], &b[0], &e[0], &m[0], 0)
+	C.mpz_clears(&rop[0], &b[0], &e[0], &m[0], unsafe.Pointer(uintptr(0)))
 	if !ok {
 		return nil, errors.New("unkown error")
 	}
@@ -140,7 +140,7 @@ func bn2mont(bn, mod *big.Int) (*big.Int, uint32) {
 	var np0 C.uint
 	var r *C.char
 	var n C.int
-	C.mpz_inits(&mont[0], &b[0], &m[0], 0)
+	C.mpz_inits(&mont[0], &b[0], &m[0], unsafe.Pointer(uintptr(0)))
 	C.hex_to_mpz((*C.char)(C.CBytes([]byte(bn.Text(16)))), (*C.mpz_t)(unsafe.Pointer(&b[0])))
 	C.hex_to_mpz((*C.char)(C.CBytes([]byte(mod.Text(16)))), (*C.mpz_t)(unsafe.Pointer(&m[0])))
 	np0 = C.bn2mont(&mont[0], &b[0], &m[0])
@@ -148,7 +148,7 @@ func bn2mont(bn, mod *big.Int) (*big.Int, uint32) {
 	br := C.GoBytes(unsafe.Pointer(r), n)
 	result, ok := new(big.Int).SetString(*(*string)(unsafe.Pointer(&br)), 16)
 	C.free(unsafe.Pointer(r))
-	C.mpz_clears(&mont[0], &b[0], &m[0], 0)
+	C.mpz_clears(&mont[0], &b[0], &m[0], unsafe.Pointer(uintptr(0)))
 	if !ok {
 		return nil, 0
 	}
