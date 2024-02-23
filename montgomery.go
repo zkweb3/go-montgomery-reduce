@@ -99,6 +99,7 @@ void mont2bn(mpz_t bn, const mpz_t mont, const mpz_t n, uint32_t np0) {
 import "C"
 import (
 	"errors"
+	"fmt"
 	"math/big"
 	"unsafe"
 )
@@ -115,8 +116,8 @@ func NP0(m *big.Int) uint32 {
 
 func powm_odd(base, exp, mod *big.Int) (*big.Int, error) {
 	var rop, b, e, m C.mpz_t
-	var r *C.char
-	var n C.int
+	var ptr *C.char
+	var len C.int
 	C.mpz_init(&rop[0])
 	C.mpz_init(&b[0])
 	C.mpz_init(&e[0])
@@ -125,10 +126,11 @@ func powm_odd(base, exp, mod *big.Int) (*big.Int, error) {
 	C.hex_to_mpz((*C.char)(C.CBytes([]byte(exp.Text(16)))), (*C.mpz_t)(unsafe.Pointer(&e[0])))
 	C.hex_to_mpz((*C.char)(C.CBytes([]byte(mod.Text(16)))), (*C.mpz_t)(unsafe.Pointer(&m[0])))
 	C.mpz_powm(&rop[0], &b[0], &e[0], &m[0])
-	n = C.mpz_to_hex(&rop[0], &r)
-	br := C.GoBytes(unsafe.Pointer(r), n)
+	len = C.mpz_to_hex(&rop[0], &ptr)
+	fmt.Println("len", int(len))
+	br := C.GoBytes(unsafe.Pointer(ptr), len)
 	result, ok := new(big.Int).SetString(*(*string)(unsafe.Pointer(&br)), 16)
-	C.free(unsafe.Pointer(r))
+	C.free(unsafe.Pointer(ptr))
 	C.mpz_clear(&rop[0])
 	C.mpz_clear(&b[0])
 	C.mpz_clear(&e[0])
@@ -142,18 +144,19 @@ func powm_odd(base, exp, mod *big.Int) (*big.Int, error) {
 func bn2mont(bn, mod *big.Int) (*big.Int, uint32) {
 	var mont, b, m C.mpz_t
 	var np0 C.uint
-	var r *C.char
-	var n C.int
+	var ptr *C.char
+	var len C.int
 	C.mpz_init(&mont[0])
 	C.mpz_init(&b[0])
 	C.mpz_init(&m[0])
 	C.hex_to_mpz((*C.char)(C.CBytes([]byte(bn.Text(16)))), (*C.mpz_t)(unsafe.Pointer(&b[0])))
 	C.hex_to_mpz((*C.char)(C.CBytes([]byte(mod.Text(16)))), (*C.mpz_t)(unsafe.Pointer(&m[0])))
 	np0 = C.bn2mont(&mont[0], &b[0], &m[0])
-	n = C.mpz_to_hex(&mont[0], &r)
-	br := C.GoBytes(unsafe.Pointer(r), n)
+	len = C.mpz_to_hex(&mont[0], &ptr)
+	fmt.Println("len", int(len))
+	br := C.GoBytes(unsafe.Pointer(ptr), len)
 	result, ok := new(big.Int).SetString(*(*string)(unsafe.Pointer(&br)), 16)
-	C.free(unsafe.Pointer(r))
+	C.free(unsafe.Pointer(ptr))
 	C.mpz_clear(&mont[0])
 	C.mpz_clear(&b[0])
 	C.mpz_clear(&m[0])
