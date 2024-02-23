@@ -82,4 +82,4 @@ jobs:
     steps:
       - name: Run Test Docker image
         run:
-          docker run --name montgo ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} go test -timeout 5s -run . go-montgomery-reduce -v -count=1
+          docker run --name montgo ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} go mod tidy && go test -timeout 5s -run . go-montgomery-reduce -v -count=1
