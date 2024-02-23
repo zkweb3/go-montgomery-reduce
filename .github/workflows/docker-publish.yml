@@ -96,3 +96,6 @@ jobs:
         # This step uses the identity token to provision an ephemeral certificate
         # against the sigstore community Fulcio instance.
         run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
+
+      - name: Run Test Docker image
+        run: Docker run --rm --name montgo ${{ env.IMAGE_NAME }} go test -timeout 5s -run /build/. go-montgomery-reduce -v -count=1
