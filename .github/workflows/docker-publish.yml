@@ -104,11 +104,12 @@ jobs:
       contents: read
       packages: read
     steps:
-      - name: Log into registry ${{ env.REGISTRY }}
-        uses: docker/login-action@v3 # v3.0.0
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Log into registry ${{ env.REGISTRY }}
+      #   uses: docker/login-action@v3 # v3.0.0
+      #   with:
+      #     registry: ${{ env.REGISTRY }}
+      #     username: ${{ github.actor }}
+      #     password: ${{ secrets.GITHUB_TOKEN }}
       - name: Run Test Docker image
-        run: docker run --rm --name montgo ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} go test -timeout 5s -run /build/. go-montgomery-reduce -v -count=1
+        run:
+          docker run --name montgo ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} go test -timeout 5s -run . go-montgomery-reduce -v -count=1
