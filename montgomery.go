@@ -6,6 +6,7 @@ package montgomery
 #include <stdint.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 #include <gmp.h>
 
 int hex_to_mpz(const char* hex, mpz_t* m)
