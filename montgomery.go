@@ -153,6 +153,7 @@ func bn2mont(bn, mod *big.Int) (*big.Int, uint32) {
 	C.hex_to_mpz((*C.char)(C.CBytes([]byte(mod.Text(16)))), (*C.mpz_t)(unsafe.Pointer(&m[0])))
 	np0 = C.bn2mont(&mont[0], &b[0], &m[0])
 	len = C.mpz_to_hex(&mont[0], &ptr)
+	fmt.Println("np0", int(np0))
 	fmt.Println("len", int(len))
 	br := C.GoBytes(unsafe.Pointer(ptr), len)
 	result, ok := new(big.Int).SetString(*(*string)(unsafe.Pointer(&br)), 16)
