@@ -4,6 +4,7 @@ package montgomery
 #cgo CFLAGS: -I/usr/local/gmp/include
 #cgo LDFLAGS: -L/usr/local/gmp/lib -lgmp
 #include <stdint.h>
+#include <stdlib.h>
 #include <assert.h>
 #include <gmp.h>
 
@@ -28,6 +29,13 @@ int hex_to_mpz(const char* hex, mpz_t* m)
     return 0;
 }
 
+int mpz_to_hex(const mpz_t r, char** hex) {
+    int size = (r->_mp_size * sizeof(uint64_t)) * 2;
+    *hex = (char*)malloc(size + 1);
+    memcpy(*hex, mpz_get_str(NULL, 16, r), size);
+    return size;
+}
+
 uint32_t find_np0(const mpz_t m) {
     uint32_t np0;
     mpz_t temp;
@@ -41,19 +49,34 @@ uint32_t find_np0(const mpz_t m) {
 */
 import "C"
 import (
+	"math/big"
 	"unsafe"
 )
 
-const (
-	P string = "fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f"
-)
-
-func NP0() uint32 {
+func NP0(m *big.Int) uint32 {
 	var modulus C.mpz_t
 	var np0 C.uint
 	C.mpz_init(&modulus[0])
-	C.hex_to_mpz((*C.char)(C.CBytes([]byte(P))), (*C.mpz_t)(unsafe.Pointer(&modulus[0])))
+	C.hex_to_mpz((*C.char)(C.CBytes(m.Bytes())), (*C.mpz_t)(unsafe.Pointer(&modulus[0])))
 	np0 = C.find_np0(&modulus[0])
 	C.mpz_clear(&modulus[0])
 	return uint32(np0)
+}
+
+func powm_odd(base, exp, mod *big.Int) (*big.Int, error) {
+	var rop C.mpz_t
+	var b, e, m C.mpz_t
+	var r *C.char
+	var n C.int
+	C.mpz_init(&rop[0])
+	C.hex_to_mpz((*C.char)(C.CBytes(base.Bytes())), (*C.mpz_t)(unsafe.Pointer(&b[0])))
+	C.hex_to_mpz((*C.char)(C.CBytes(exp.Bytes())), (*C.mpz_t)(unsafe.Pointer(&e[0])))
+	C.hex_to_mpz((*C.char)(C.CBytes(mod.Bytes())), (*C.mpz_t)(unsafe.Pointer(&m[0])))
+	C.mpz_powm(&rop[0], &b[0], &e[0], &m[0])
+	n = C.mpz_to_hex(&rop[0], &r)
+	br := C.GoBytes(unsafe.Pointer(r), n)
+	result := new(big.Int).SetBytes(br)
+	C.free(unsafe.Pointer(r))
+	C.mpz_clear(&rop[0])
+	return result, nil
 }
