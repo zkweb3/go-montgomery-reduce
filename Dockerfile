@@ -11,6 +11,7 @@ ADD montgomery.go .
 ADD montgomery_test.go .
 ADD go.mod .
 ADD setup.sh .
-RUN chmod +x setup.sh && ./setup.sh
+ADD test.sh .
+RUN chmod +x setup.sh && chmod +x test.sh && ./setup.sh
 
 # ENTRYPOINT [ "tail", "-f", "/dev/null" ]
