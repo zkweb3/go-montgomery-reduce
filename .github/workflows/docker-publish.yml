@@ -100,6 +100,16 @@ jobs:
 
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
     steps:
+      - name: Log into registry ${{ env.REGISTRY }}
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Run Test Docker image
         run: docker run --rm --name montgo ${{ env.IMAGE_NAME }} go test -timeout 5s -run /build/. go-montgomery-reduce -v -count=1
