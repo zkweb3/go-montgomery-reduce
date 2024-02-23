@@ -16,5 +16,3 @@ if ! [[ -d "/usr/local/gmp" ]]; then
 	  exit 1
   fi
 fi
-
-tail -f /dev/null
