@@ -14,10 +14,15 @@ const (
 )
 
 func TestGetNp0(t *testing.T) {
-	m, ok := new(big.Int).SetString(P, 16)
+	mod, ok := new(big.Int).SetString(P, 16)
 	require.True(t, ok)
-	np0 := NP0(m)
+
+	bn := big.NewInt(math.MaxInt64)
+	mont, np0 := bn2mont(bn, mod)
+	require.NotEqual(t, np0, 0)
+	require.Equal(t, NP0(mod), np0)
 	fmt.Println("np0", np0)
+	fmt.Println("mont", mont.Text(16))
 }
 
 func TestPowm(t *testing.T) {
