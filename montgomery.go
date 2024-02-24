@@ -188,7 +188,9 @@ func mont2bn(mont, mod *big.Int, np0 uint32) (*big.Int, error) {
 
     init_mpz(bn, mt, m)
     defer clear_mpz(bn, mt, m)
-    C.hex_to_mpz((*C.char)(C.CBytes([]byte(mont.Text(16)))), (*C.mpz_t)(unsafe.Pointer(&mt[0])))
+    temp := C.CString(mont.Text(16))
+    defer C.free(unsafe.Pointer(temp))
+    C.hex_to_mpz(temp, (*C.mpz_t)(unsafe.Pointer(&mt[0])))
     C.hex_to_mpz((*C.char)(C.CBytes([]byte(mod.Text(16)))), (*C.mpz_t)(unsafe.Pointer(&m[0])))
     C.mont2bn(&bn[0], &mt[0], &m[0], C.uint(np0))
     len = C.mpz_to_hex(&bn[0], &ptr)
