@@ -79,6 +79,8 @@ void mont2bn(mpz_t bn, const mpz_t mont, const mpz_t n, uint32_t np0) {
     uint32_t low;
 
     if (np0 * (uint32_t)mpz_get_ui(n) != 0xFFFFFFFF) {
+        puts("###########");
+        fflush(stdout);
         return;
     }
     mpz_inits(add, p0, p1, p2, NULL);
