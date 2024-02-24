@@ -34,7 +34,7 @@ int hex_to_mpz(const char* hex, mpz_t* m)
 int mpz_to_hex(const mpz_t r, char** hex) {
     int size = (r->_mp_size * sizeof(uint64_t)) * 2;
     *hex = (char*)malloc(size + 1);
-	printf("%s\n", mpz_get_str(NULL, 16, r));
+	puts(mpz_get_str(NULL, 16, r));
     strcpy(*hex, mpz_get_str(NULL, 16, r));
     return strlen(*hex);
 }
@@ -106,14 +106,26 @@ import (
 	"unsafe"
 )
 
+func init_mpz(zs ...C.mpz_t) {
+	for _, z := range zs {
+		C.mpz_init(&z[0])
+	}
+}
+
+func clear_mpz(zs ...C.mpz_t) {
+	for _, z := range zs {
+		C.mpz_clear(&z[0])
+	}
+}
+
 func NP0(m *big.Int) uint32 {
 	var modulus C.mpz_t
 	var np0 C.uint
 
 	C.mpz_init(&modulus[0])
+	defer C.mpz_clear(&modulus[0])
 	C.hex_to_mpz((*C.char)(C.CBytes([]byte(m.Text(16)))), (*C.mpz_t)(unsafe.Pointer(&modulus[0])))
 	np0 = C.find_np0(&modulus[0])
-	C.mpz_clear(&modulus[0])
 	return uint32(np0)
 }
 
@@ -122,23 +134,17 @@ func powm_odd(base, exp, mod *big.Int) (*big.Int, error) {
 	var ptr *C.char
 	var len C.int
 
-	C.mpz_init(&rop[0])
-	C.mpz_init(&b[0])
-	C.mpz_init(&e[0])
-	C.mpz_init(&m[0])
+	init_mpz(rop, b, e, m)
+	defer clear_mpz(rop, b, e, m)
 	C.hex_to_mpz((*C.char)(C.CBytes([]byte(base.Text(16)))), (*C.mpz_t)(unsafe.Pointer(&b[0])))
 	C.hex_to_mpz((*C.char)(C.CBytes([]byte(exp.Text(16)))), (*C.mpz_t)(unsafe.Pointer(&e[0])))
 	C.hex_to_mpz((*C.char)(C.CBytes([]byte(mod.Text(16)))), (*C.mpz_t)(unsafe.Pointer(&m[0])))
 	C.mpz_powm(&rop[0], &b[0], &e[0], &m[0])
 	len = C.mpz_to_hex(&rop[0], &ptr)
+	defer C.free(unsafe.Pointer(ptr))
 	fmt.Println("len", int(len))
 	br := C.GoBytes(unsafe.Pointer(ptr), len)
 	r, ok := new(big.Int).SetString(*(*string)(unsafe.Pointer(&br)), 16)
-	C.free(unsafe.Pointer(ptr))
-	C.mpz_clear(&rop[0])
-	C.mpz_clear(&b[0])
-	C.mpz_clear(&e[0])
-	C.mpz_clear(&m[0])
 	if !ok {
 		return nil, errors.New("convert error")
 	}
@@ -151,21 +157,17 @@ func bn2mont(bn, mod *big.Int) (*big.Int, uint32) {
 	var ptr *C.char
 	var len C.int
 
-	C.mpz_init(&mont[0])
-	C.mpz_init(&b[0])
-	C.mpz_init(&m[0])
+	init_mpz(mont, b, m)
+	defer clear_mpz(mont, b, m)
 	C.hex_to_mpz((*C.char)(C.CBytes([]byte(bn.Text(16)))), (*C.mpz_t)(unsafe.Pointer(&b[0])))
 	C.hex_to_mpz((*C.char)(C.CBytes([]byte(mod.Text(16)))), (*C.mpz_t)(unsafe.Pointer(&m[0])))
 	np0 = C.bn2mont(&mont[0], &b[0], &m[0])
 	len = C.mpz_to_hex(&mont[0], &ptr)
+	defer C.free(unsafe.Pointer(ptr))
 	fmt.Println("np0", int(np0))
 	fmt.Println("len", int(len))
 	br := C.GoBytes(unsafe.Pointer(ptr), len)
 	r, ok := new(big.Int).SetString(*(*string)(unsafe.Pointer(&br)), 16)
-	C.free(unsafe.Pointer(ptr))
-	C.mpz_clear(&mont[0])
-	C.mpz_clear(&b[0])
-	C.mpz_clear(&m[0])
 	if !ok {
 		return nil, 0
 	}
@@ -177,20 +179,16 @@ func mont2bn(mont, mod *big.Int, np0 uint32) (*big.Int, error) {
 	var ptr *C.char
 	var len C.int
 
-	C.mpz_init(&bn[0])
-	C.mpz_init(&mt[0])
-	C.mpz_init(&m[0])
+	init_mpz(bn, mt, m)
+	defer clear_mpz(bn, mt, m)
 	C.hex_to_mpz((*C.char)(C.CBytes([]byte(mont.Text(16)))), (*C.mpz_t)(unsafe.Pointer(&mt[0])))
 	C.hex_to_mpz((*C.char)(C.CBytes([]byte(mod.Text(16)))), (*C.mpz_t)(unsafe.Pointer(&m[0])))
 	C.mont2bn(&bn[0], &mt[0], &m[0], C.uint(np0))
 	len = C.mpz_to_hex(&bn[0], &ptr)
+	defer C.free(unsafe.Pointer(ptr))
 	fmt.Println("len", int(len))
 	br := C.GoBytes(unsafe.Pointer(ptr), len)
 	r, ok := new(big.Int).SetString(*(*string)(unsafe.Pointer(&br)), 16)
-	C.free(unsafe.Pointer(ptr))
-	C.mpz_clear(&bn[0])
-	C.mpz_clear(&mt[0])
-	C.mpz_clear(&m[0])
 	if !ok {
 		return nil, errors.New("convert error")
 	}
