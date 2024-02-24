@@ -34,8 +34,6 @@ int hex_to_mpz(const char* hex, mpz_t* m)
 int mpz_to_hex(const mpz_t r, char** hex) {
     int size = (r->_mp_size * sizeof(uint64_t)) * 2;
     *hex = (char*)malloc(size + 1);
-    puts(mpz_get_str(NULL, 16, r));
-    fflush(stdout);
     strcpy(*hex, mpz_get_str(NULL, 16, r));
     return strlen(*hex);
 }
@@ -78,9 +76,13 @@ void mont2bn(mpz_t bn, const mpz_t mont, const mpz_t n, uint32_t np0) {
     int32_t  index;
     uint32_t low;
 
+    puts(mpz_get_str(NULL, 16, mont));
+    fflush(stdout);
+    puts(mpz_get_str(NULL, 16, n));
+    fflush(stdout);
+    printf("%u\n", np0);
+    fflush(stdout);
     if (np0 * (uint32_t)mpz_get_ui(n) != 0xFFFFFFFF) {
-        puts("###########");
-        fflush(stdout);
         return;
     }
     mpz_inits(add, p0, p1, p2, NULL);
@@ -94,6 +96,8 @@ void mont2bn(mpz_t bn, const mpz_t mont, const mpz_t n, uint32_t np0) {
         mpz_clear(p2);
         mpz_init(p2);
     }
+    puts(mpz_get_str(NULL, 16, p0));
+    fflush(stdout);
     if (mpz_cmp(p0, n) < 0)
         mpz_set(bn, p0);
     else
