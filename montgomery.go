@@ -7,6 +7,7 @@ package montgomery
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <stdio.h>
 #include <gmp.h>
 
 int hex_to_mpz(const char* hex, mpz_t* m)
@@ -33,6 +34,7 @@ int hex_to_mpz(const char* hex, mpz_t* m)
 int mpz_to_hex(const mpz_t r, char** hex) {
     int size = (r->_mp_size * sizeof(uint64_t)) * 2;
     *hex = (char*)malloc(size + 1);
+	printf("%s\n", mpz_get_str(NULL, 16, r));
     strcpy(*hex, mpz_get_str(NULL, 16, r));
     return strlen(*hex);
 }
