@@ -27,9 +27,10 @@ func TestMontNp0(t *testing.T) {
     require.Equal(t, NP0(mod), np0)
     fmt.Println("mont", mont.Text(16))
 
-    bn, err := mont2bn(mont, mod, np0)
+    ggn, err := mont2bn(mont, mod, np0)
     require.Nil(t, err)
-    fmt.Println("bn", bn.Text(16))
+    require.Equal(t, ggn.Cmp(gn), 0)
+    fmt.Println("bn", ggn.Text(16))
 }
 
 func TestPowMod(t *testing.T) {
