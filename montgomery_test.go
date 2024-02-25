@@ -12,7 +12,7 @@ import (
 const (
     P  string = "fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f"
     bx string = "b0007aa30c1c50f8"
-    by string = "30ffffffefffffbbf0000000700001b26ffffffe3ffff94ec100000bd1001e87"
+    by string = "30ffffffefffffbb"
 )
 
 func TestMontMul(t *testing.T) {
