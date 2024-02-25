@@ -34,7 +34,7 @@ int hex_to_mpz(const char* hex, mpz_t* m)
 int mpz_to_hex(const mpz_t r, char** hex) {
     int size = (r->_mp_size * sizeof(uint64_t)) * 2;
     *hex = (char*)malloc(size + 1);
-    strcpy(*hex, mpz_get_str(NULL, 16, r));
+    mpz_get_str(*hex, 16, r);
     return strlen(*hex);
 }
 
@@ -125,14 +125,16 @@ func clear_mpz(zs ...C.mpz_t) {
     }
 }
 
-func NP0(m *big.Int) uint32 {
-    var modulus C.mpz_t
+func NP0(mod *big.Int) uint32 {
+    var m C.mpz_t
     var np0 C.uint
 
-    C.mpz_init(&modulus[0])
-    defer C.mpz_clear(&modulus[0])
-    C.hex_to_mpz((*C.char)(C.CBytes([]byte(m.Text(16)))), (*C.mpz_t)(unsafe.Pointer(&modulus[0])))
-    np0 = C.find_np0(&modulus[0])
+    C.mpz_init(&m[0])
+    defer C.mpz_clear(&m[0])
+    hm := C.CString(mod.Text(16))
+    defer C.free(unsafe.Pointer(hm))
+    C.hex_to_mpz(hm, (*C.mpz_t)(unsafe.Pointer(&m[0])))
+    np0 = C.find_np0(&m[0])
     return uint32(np0)
 }
 
@@ -143,15 +145,20 @@ func powm_odd(base, exp, mod *big.Int) (*big.Int, error) {
 
     init_mpz(rop, b, e, m)
     defer clear_mpz(rop, b, e, m)
-    C.hex_to_mpz((*C.char)(C.CBytes([]byte(base.Text(16)))), (*C.mpz_t)(unsafe.Pointer(&b[0])))
-    C.hex_to_mpz((*C.char)(C.CBytes([]byte(exp.Text(16)))), (*C.mpz_t)(unsafe.Pointer(&e[0])))
-    C.hex_to_mpz((*C.char)(C.CBytes([]byte(mod.Text(16)))), (*C.mpz_t)(unsafe.Pointer(&m[0])))
+    hb := C.CString(base.Text(16))
+    defer C.free(unsafe.Pointer(hb))
+    he := C.CString(exp.Text(16))
+    defer C.free(unsafe.Pointer(he))
+    hm := C.CString(mod.Text(16))
+    defer C.free(unsafe.Pointer(hm))
+    C.hex_to_mpz(hb, (*C.mpz_t)(unsafe.Pointer(&b[0])))
+    C.hex_to_mpz(he, (*C.mpz_t)(unsafe.Pointer(&e[0])))
+    C.hex_to_mpz(hm, (*C.mpz_t)(unsafe.Pointer(&m[0])))
     C.mpz_powm(&rop[0], &b[0], &e[0], &m[0])
     len = C.mpz_to_hex(&rop[0], &ptr)
     defer C.free(unsafe.Pointer(ptr))
     fmt.Println("len", int(len))
-    br := C.GoBytes(unsafe.Pointer(ptr), len)
-    r, ok := new(big.Int).SetString(*(*string)(unsafe.Pointer(&br)), 16)
+    r, ok := new(big.Int).SetString(C.GoString(ptr), 16)
     if !ok {
         return nil, errors.New("convert error")
     }
@@ -166,15 +173,18 @@ func bn2mont(bn, mod *big.Int) (*big.Int, uint32) {
 
     init_mpz(mont, b, m)
     defer clear_mpz(mont, b, m)
-    C.hex_to_mpz((*C.char)(C.CBytes([]byte(bn.Text(16)))), (*C.mpz_t)(unsafe.Pointer(&b[0])))
-    C.hex_to_mpz((*C.char)(C.CBytes([]byte(mod.Text(16)))), (*C.mpz_t)(unsafe.Pointer(&m[0])))
+    hb := C.CString(bn.Text(16))
+    defer C.free(unsafe.Pointer(hb))
+    hm := C.CString(mod.Text(16))
+    defer C.free(unsafe.Pointer(hm))
+    C.hex_to_mpz(hb, (*C.mpz_t)(unsafe.Pointer(&b[0])))
+    C.hex_to_mpz(hm, (*C.mpz_t)(unsafe.Pointer(&m[0])))
     np0 = C.bn2mont(&mont[0], &b[0], &m[0])
     len = C.mpz_to_hex(&mont[0], &ptr)
     defer C.free(unsafe.Pointer(ptr))
     fmt.Println("np0", int(np0))
     fmt.Println("len", int(len))
-    br := C.GoBytes(unsafe.Pointer(ptr), len)
-    r, ok := new(big.Int).SetString(*(*string)(unsafe.Pointer(&br)), 16)
+    r, ok := new(big.Int).SetString(C.GoString(ptr), 16)
     if !ok {
         return nil, 0
     }
@@ -188,16 +198,17 @@ func mont2bn(mont, mod *big.Int, np0 uint32) (*big.Int, error) {
 
     init_mpz(bn, mt, m)
     defer clear_mpz(bn, mt, m)
-    temp := C.CString(mont.Text(16))
-    defer C.free(unsafe.Pointer(temp))
-    C.hex_to_mpz(temp, (*C.mpz_t)(unsafe.Pointer(&mt[0])))
-    C.hex_to_mpz((*C.char)(C.CBytes([]byte(mod.Text(16)))), (*C.mpz_t)(unsafe.Pointer(&m[0])))
+    ht := C.CString(mont.Text(16))
+    defer C.free(unsafe.Pointer(ht))
+    hm := C.CString(mod.Text(16))
+    defer C.free(unsafe.Pointer(hm))
+    C.hex_to_mpz(ht, (*C.mpz_t)(unsafe.Pointer(&mt[0])))
+    C.hex_to_mpz(hm, (*C.mpz_t)(unsafe.Pointer(&m[0])))
     C.mont2bn(&bn[0], &mt[0], &m[0], C.uint(np0))
     len = C.mpz_to_hex(&bn[0], &ptr)
     defer C.free(unsafe.Pointer(ptr))
     fmt.Println("len", int(len))
-    br := C.GoBytes(unsafe.Pointer(ptr), len)
-    r, ok := new(big.Int).SetString(*(*string)(unsafe.Pointer(&br)), 16)
+    r, ok := new(big.Int).SetString(C.GoString(ptr), 16)
     if !ok {
         return nil, errors.New("convert error")
     }
