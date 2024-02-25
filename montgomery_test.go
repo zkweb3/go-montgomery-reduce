@@ -37,6 +37,11 @@ func TestMontMul(t *testing.T) {
     bigz, err := mont2bn(montz, mod, np0)
     require.Nil(t, err)
     fmt.Println("z", bigz.Text(16))
+
+    // verify result
+    correct := new(big.Int).Mul(bigx, bigy)
+    correct.Mod(correct, mod)
+    require.Equal(t, correct.Cmp(bigz), 0)
 }
 
 func TestPowMod(t *testing.T) {
