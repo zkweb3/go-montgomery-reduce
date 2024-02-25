@@ -240,7 +240,7 @@ func mont_mul(x, y, mod *big.Int, np0 uint32) (*big.Int, error) {
     defer clear_mpz(mr, mx, my, m)
     hx := C.CString(x.Text(16))
     defer C.free(unsafe.Pointer(hx))
-    hy := C.CString(x.Text(16))
+    hy := C.CString(y.Text(16))
     defer C.free(unsafe.Pointer(hy))
     hm := C.CString(mod.Text(16))
     defer C.free(unsafe.Pointer(hm))
