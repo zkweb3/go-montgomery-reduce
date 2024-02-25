@@ -96,6 +96,31 @@ void mont2bn(mpz_t bn, const mpz_t mont, const mpz_t n, uint32_t np0) {
         mpz_sub(bn, p0, n);
     mpz_clears(add, p0, p1, p2, NULL);
 }
+
+void mont_mul(mpz_t r, const mpz_t a, const mpz_t b, const mpz_t n, uint32_t np0) {
+    mpz_t    add, p0, p1, p2;
+    int32_t  index;
+    uint32_t low;
+
+    if (np0 * (uint32_t)mpz_get_ui(n) != 0xFFFFFFFF) {
+        return;
+    }
+    mpz_inits(add, p0, p1, p2, NULL);
+    mpz_mul(p0, a, b);
+    for (index = 0; index < 8; index++) {
+        low = np0 * (uint32_t)mpz_get_ui(p0);
+        mpz_mul_ui(add, n, low);
+        mpz_add(p1, p0, add);
+        mpz_fdiv_q_2exp(p2, p1, 32);
+        mpz_swap(p0, p2);
+        mpz_clear(p2);
+        mpz_init(p2);
+    }
+    if (mpz_tstbit(p0, 256) == 1)
+        mpz_sub(p0, p0, n);
+    mpz_set(r, p0);
+    mpz_clears(add, p0, p1, p2, NULL);
+}
 */
 import "C"
 import (
@@ -197,6 +222,33 @@ func mont2bn(mont, mod *big.Int, np0 uint32) (*big.Int, error) {
     C.hex_to_mpz(hm, (*C.mpz_t)(unsafe.Pointer(&m[0])))
     C.mont2bn(&bn[0], &mt[0], &m[0], C.uint(np0))
     len = C.mpz_to_hex(&bn[0], &ptr)
+    defer C.free(unsafe.Pointer(ptr))
+    fmt.Println("len", int(len))
+    r, ok := new(big.Int).SetString(C.GoString(ptr), 16)
+    if !ok {
+        return nil, errors.New("convert error")
+    }
+    return r, nil
+}
+
+func mont_mul(x, y, mod *big.Int, np0 uint32) (*big.Int, error) {
+    var mr, mx, my, m C.mpz_t
+    var ptr *C.char
+    var len C.int
+
+    init_mpz(mr, mx, my, m)
+    defer clear_mpz(mr, mx, my, m)
+    hx := C.CString(x.Text(16))
+    defer C.free(unsafe.Pointer(hx))
+    hy := C.CString(x.Text(16))
+    defer C.free(unsafe.Pointer(hy))
+    hm := C.CString(mod.Text(16))
+    defer C.free(unsafe.Pointer(hm))
+    C.hex_to_mpz(hx, (*C.mpz_t)(unsafe.Pointer(&mx[0])))
+    C.hex_to_mpz(hy, (*C.mpz_t)(unsafe.Pointer(&my[0])))
+    C.hex_to_mpz(hm, (*C.mpz_t)(unsafe.Pointer(&m[0])))
+    C.mont_mul(&mr[0], &mx[0], &my[0], &m[0], C.uint(np0))
+    len = C.mpz_to_hex(&mr[0], &ptr)
     defer C.free(unsafe.Pointer(ptr))
     fmt.Println("len", int(len))
     r, ok := new(big.Int).SetString(C.GoString(ptr), 16)

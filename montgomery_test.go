@@ -11,26 +11,32 @@ import (
 
 const (
     P  string = "fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f"
-    bn string = "b0007aa30c1c50f8"
+    bx string = "b0007aa30c1c50f8"
+    by string = "30ffffffefffffbbf0000000700001b26ffffffe3ffff94ec100000bd1001e87"
 )
 
-func TestMontNp0(t *testing.T) {
+func TestMontMul(t *testing.T) {
     mod, ok := new(big.Int).SetString(P, 16)
     require.True(t, ok)
-    gn, ok := new(big.Int).SetString(bn, 16)
+    bigx, ok := new(big.Int).SetString(bx, 16)
+    require.True(t, ok)
+    bigy, ok := new(big.Int).SetString(by, 16)
     require.True(t, ok)
 
-    mont, np0 := bn2mont(gn, mod)
+    montx, np0 := bn2mont(bigx, mod)
     require.NotEqual(t, np0, 0)
     fmt.Println("np0", np0)
-
+    monty, _ := bn2mont(bigy, mod)
     require.Equal(t, NP0(mod), np0)
-    fmt.Println("mont", mont.Text(16))
+    fmt.Println("mont_x", montx.Text(16))
+    fmt.Println("mont_y", monty.Text(16))
 
-    ggn, err := mont2bn(mont, mod, np0)
+    montz, err := mont_mul(montx, monty, mod, np0)
     require.Nil(t, err)
-    require.Equal(t, ggn.Cmp(gn), 0)
-    fmt.Println("bn", ggn.Text(16))
+    fmt.Println("mont_z", montz.Text(16))
+    bigz, err := mont2bn(montz, mod, np0)
+    require.Nil(t, err)
+    fmt.Println("z", bigz.Text(16))
 }
 
 func TestPowMod(t *testing.T) {
