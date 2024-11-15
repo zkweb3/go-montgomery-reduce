@@ -60,3 +60,27 @@ func TestPowMod(t *testing.T) {
     // print result
     fmt.Println("powm", result.Text(16))
 }
+
+func BenchmarkMontMul(b *testing.B) {
+    mod, ok := new(big.Int).SetString(P, 16)
+    require.True(b, ok)
+    bigx, ok := new(big.Int).SetString(bx, 16)
+    require.True(b, ok)
+    bigy, ok := new(big.Int).SetString(by, 16)
+    require.True(b, ok)
+
+    montx, np0 := bn2mont(bigx, mod)
+    require.NotEqual(b, np0, 0)
+    fmt.Println("np0", np0)
+    monty, _ := bn2mont(bigy, mod)
+    require.Equal(b, NP0(mod), np0)
+    fmt.Println("mont_x", montx.Text(16))
+    fmt.Println("mont_y", monty.Text(16))
+
+    // b.StartTimer()
+	// for i := 0; i < b.N; i++ {
+    //     _, err := mont_mul(montx, monty, mod, np0)
+    //     require.Nil(b, err)
+	// }
+	// b.StopTimer()
+}

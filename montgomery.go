@@ -125,7 +125,7 @@ void mont_mul(mpz_t r, const mpz_t a, const mpz_t b, const mpz_t n, uint32_t np0
 import "C"
 import (
     "errors"
-    "fmt"
+    // "fmt"
     "math/big"
     "unsafe"
 )
@@ -158,7 +158,7 @@ func NP0(mod *big.Int) uint32 {
 func powm_odd(base, exp, mod *big.Int) (*big.Int, error) {
     var rop, b, e, m C.mpz_t
     var ptr *C.char
-    var len C.int
+    // var len C.int
 
     init_mpz(rop, b, e, m)
     defer clear_mpz(rop, b, e, m)
@@ -172,9 +172,10 @@ func powm_odd(base, exp, mod *big.Int) (*big.Int, error) {
     C.hex_to_mpz(he, (*C.mpz_t)(unsafe.Pointer(&e[0])))
     C.hex_to_mpz(hm, (*C.mpz_t)(unsafe.Pointer(&m[0])))
     C.mpz_powm(&rop[0], &b[0], &e[0], &m[0])
-    len = C.mpz_to_hex(&rop[0], &ptr)
+    // len = C.mpz_to_hex(&rop[0], &ptr)
+    C.mpz_to_hex(&rop[0], &ptr)
     defer C.free(unsafe.Pointer(ptr))
-    fmt.Println("len", int(len))
+    // fmt.Println("len", int(len))
     r, ok := new(big.Int).SetString(C.GoString(ptr), 16)
     if !ok {
         return nil, errors.New("convert error")
@@ -186,7 +187,7 @@ func bn2mont(bn, mod *big.Int) (*big.Int, uint32) {
     var mont, b, m C.mpz_t
     var np0 C.uint
     var ptr *C.char
-    var len C.int
+    // var len C.int
 
     init_mpz(mont, b, m)
     defer clear_mpz(mont, b, m)
@@ -197,9 +198,10 @@ func bn2mont(bn, mod *big.Int) (*big.Int, uint32) {
     C.hex_to_mpz(hb, (*C.mpz_t)(unsafe.Pointer(&b[0])))
     C.hex_to_mpz(hm, (*C.mpz_t)(unsafe.Pointer(&m[0])))
     np0 = C.bn2mont(&mont[0], &b[0], &m[0])
-    len = C.mpz_to_hex(&mont[0], &ptr)
+    // len = C.mpz_to_hex(&mont[0], &ptr)
+    C.mpz_to_hex(&mont[0], &ptr)
     defer C.free(unsafe.Pointer(ptr))
-    fmt.Println("len", int(len))
+    // fmt.Println("len", int(len))
     r, ok := new(big.Int).SetString(C.GoString(ptr), 16)
     if !ok {
         return nil, 0
@@ -210,7 +212,7 @@ func bn2mont(bn, mod *big.Int) (*big.Int, uint32) {
 func mont2bn(mont, mod *big.Int, np0 uint32) (*big.Int, error) {
     var bn, mt, m C.mpz_t
     var ptr *C.char
-    var len C.int
+    // var len C.int
 
     init_mpz(bn, mt, m)
     defer clear_mpz(bn, mt, m)
@@ -221,9 +223,10 @@ func mont2bn(mont, mod *big.Int, np0 uint32) (*big.Int, error) {
     C.hex_to_mpz(ht, (*C.mpz_t)(unsafe.Pointer(&mt[0])))
     C.hex_to_mpz(hm, (*C.mpz_t)(unsafe.Pointer(&m[0])))
     C.mont2bn(&bn[0], &mt[0], &m[0], C.uint(np0))
-    len = C.mpz_to_hex(&bn[0], &ptr)
+    // len = C.mpz_to_hex(&bn[0], &ptr)
+    C.mpz_to_hex(&bn[0], &ptr)
     defer C.free(unsafe.Pointer(ptr))
-    fmt.Println("len", int(len))
+    // fmt.Println("len", int(len))
     r, ok := new(big.Int).SetString(C.GoString(ptr), 16)
     if !ok {
         return nil, errors.New("convert error")
@@ -234,7 +237,7 @@ func mont2bn(mont, mod *big.Int, np0 uint32) (*big.Int, error) {
 func mont_mul(x, y, mod *big.Int, np0 uint32) (*big.Int, error) {
     var mr, mx, my, m C.mpz_t
     var ptr *C.char
-    var len C.int
+    // var len C.int
 
     init_mpz(mr, mx, my, m)
     defer clear_mpz(mr, mx, my, m)
@@ -248,9 +251,10 @@ func mont_mul(x, y, mod *big.Int, np0 uint32) (*big.Int, error) {
     C.hex_to_mpz(hy, (*C.mpz_t)(unsafe.Pointer(&my[0])))
     C.hex_to_mpz(hm, (*C.mpz_t)(unsafe.Pointer(&m[0])))
     C.mont_mul(&mr[0], &mx[0], &my[0], &m[0], C.uint(np0))
-    len = C.mpz_to_hex(&mr[0], &ptr)
+    // len = C.mpz_to_hex(&mr[0], &ptr)
+    C.mpz_to_hex(&mr[0], &ptr)
     defer C.free(unsafe.Pointer(ptr))
-    fmt.Println("len", int(len))
+    // fmt.Println("len", int(len))
     r, ok := new(big.Int).SetString(C.GoString(ptr), 16)
     if !ok {
         return nil, errors.New("convert error")
